@@ -9,7 +9,6 @@ Send API so that both sub-agent calls happen concurrently.
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Annotated, TypedDict
 
@@ -79,41 +78,21 @@ async def check_routing(state: LawState) -> dict:
         logger.info("Max delegation depth reached (%d); skipping sub-agents", depth)
         return {"needs_tax": False, "needs_compliance": False}
 
-    llm = get_llm()
-    messages = [
-        SystemMessage(
-            content=(
-                'You are a legal routing expert. Based on the question, decide whether '
-                'specialist sub-agents are needed.\n'
-                'Reply with ONLY valid JSON — no markdown, no extra text:\n'
-                '{"needs_tax": <true|false>, "needs_compliance": <true|false>}\n\n'
-                'needs_tax = true  → question involves tax law, IRS, tax evasion, penalties\n'
-                'needs_compliance = true → question involves regulatory compliance, SEC, SOX, AML, FCPA'
-            )
-        ),
-        HumanMessage(content=state["question"]),
-    ]
-    result = await llm.ainvoke(messages)
-    raw = result.content.strip()
+    question = state["question"].lower()
+    tax_keywords = (
+        "tax", "irs", "evasion", "income", "deduction", "fbar", "fatca",
+        "transfer pricing", "thuế",
+    )
+    compliance_keywords = (
+        "compliance", "regulation", "regulatory", "sec", "sox", "aml", "bsa",
+        "fcpa", "bribery", "privacy", "gdpr", "ccpa", "data", "governance",
+    )
 
-    # Strip markdown code fences if present
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-        raw = raw.strip()
-
-    try:
-        parsed = json.loads(raw)
-    except json.JSONDecodeError:
-        logger.warning("Routing LLM returned non-JSON: %r — defaulting to both=True", raw)
-        parsed = {"needs_tax": True, "needs_compliance": True}
-
-    needs_tax = bool(parsed.get("needs_tax", True))
-    needs_compliance = bool(parsed.get("needs_compliance", True))
+    # Local routing avoids a sequential LLM call before parallel delegation.
+    needs_tax = any(keyword in question for keyword in tax_keywords)
+    needs_compliance = any(keyword in question for keyword in compliance_keywords)
     logger.info("Routing decision: needs_tax=%s needs_compliance=%s", needs_tax, needs_compliance)
     return {"needs_tax": needs_tax, "needs_compliance": needs_compliance}
-
 
 def route_to_subagents(state: LawState) -> list[Send]:
     """Routing function: dispatch parallel Send objects based on routing flags.

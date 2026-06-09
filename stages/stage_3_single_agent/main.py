@@ -170,14 +170,29 @@ def check_compliance_requirements(industry: str, company_size: str) -> str:
         f"  {', '.join(applicable)}\n"
         f"  {size_note}"
     )
+@tool
+def search_case_law(keywords: str) -> str:
+    """Tìm kiếm án lệ theo từ khóa.
+    
+    Args:
+        keywords: Từ khóa tìm kiếm
+    """
+    cases = {
+        "breach": "Hadley v. Baxendale (1854) - Consequential damages",
+        "negligence": "Donoghue v. Stevenson (1932) - Duty of care",
+        "contract": "Carlill v. Carbolic Smoke Ball Co (1893) - Unilateral contract",
+    }
+    for key, case in cases.items():
+        if key in keywords.lower():
+            return case
+    return "Không tìm thấy án lệ phù hợp"
 
-
-TOOLS = [search_legal_database, calculate_penalty, check_compliance_requirements]
+TOOLS = [search_legal_database, calculate_penalty, check_compliance_requirements, search_case_law]
 
 QUESTION = (
-    "A tech startup with $5M revenue was caught sharing user data without consent "
-    "and failed to pay taxes on overseas revenue. What are all the legal consequences?"
-)
+    "Nhà cung cấp phần mềm trì hoãn việc giao bản cập nhật quan trọng, khiến khách hàng phải hủy bỏ sự kiện ra mắt sản phẩm trị giá 1 triệu đô la."
+    "Hợp đồng quy định khoản bồi thường thiệt hại ấn định trước là 100.000 đô la cho sự chậm trễ, nhưng cũng bao gồm một điều khoản tiêu chuẩn miễn trừ mọi thiệt hại gián tiếp. Khách hàng có thể được bồi thường những gì theo pháp luật?")
+
 
 SYSTEM_PROMPT = (
     "You are a legal analyst agent. You have access to tools for searching legal databases, "

@@ -1,0 +1,6 @@
+INFO:     127.0.0.1:62129 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62129 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53986 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53986 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59096 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59096 - "POST / HTTP/1.1" 200 OK

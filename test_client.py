@@ -6,6 +6,7 @@ Sends a legal question to the Customer Agent and prints the response.
 import asyncio
 import os
 import sys
+from time import perf_counter
 
 import httpx
 from dotenv import load_dotenv
@@ -21,6 +22,7 @@ QUESTION = (
 
 
 async def main() -> None:
+    started_at = perf_counter()
     print(f"Connecting to Customer Agent at {CUSTOMER_AGENT_URL}")
     print(f"Question: {QUESTION}")
     print("-" * 60)
@@ -91,6 +93,9 @@ async def main() -> None:
         else:
             print("No text response received. Raw response:")
             print(response)
+
+    elapsed = perf_counter() - started_at
+    print(f"\nTOTAL LATENCY: {elapsed:.2f} seconds")
 
 
 if __name__ == "__main__":
